@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { auth } from '../lib/firebase';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 
 const AuthContext = createContext();
 
@@ -11,42 +12,36 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Check active sessions and sets the user
-        const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setIsAuthenticated(!!session);
-            setLoading(false);
-        };
-
-        checkSession();
-
         // Listen for changes on auth state (log in, log out, etc.)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setIsAuthenticated(!!session);
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setIsAuthenticated(!!user);
+            setLoading(false);
         });
 
-        return () => subscription.unsubscribe();
+        return () => unsubscribe();
     }, []);
 
     const login = async (email, password) => {
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-
-            if (error) {
-                return { success: false, error: error.message };
-            }
-
+            await signInWithEmailAndPassword(auth, email, password);
             return { success: true };
         } catch (err) {
-            return { success: false, error: 'An unexpected error occurred.' };
+            let errorMessage = 'An unexpected error occurred.';
+            if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+                errorMessage = 'Invalid email or password.';
+            } else if (err.code === 'auth/too-many-requests') {
+                errorMessage = 'Too many attempts. Please try again later.';
+            }
+            return { success: false, error: errorMessage };
         }
     };
 
     const logout = async () => {
-        await supabase.auth.signOut();
+        try {
+            await signOut(auth);
+        } catch (err) {
+            console.error("Error signing out:", err);
+        }
     };
 
     if (loading) {

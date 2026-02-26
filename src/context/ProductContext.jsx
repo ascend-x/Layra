@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { db } from '../lib/firebase';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp } from 'firebase/firestore';
 import { products as initialProducts } from '../data/products';
 
 const ProductContext = createContext();
@@ -20,13 +21,15 @@ const mapToDB = (p) => {
         ...rest,
         old_price: oldPrice || null,
         is_best_seller: isBestSeller || false,
-        how_to_use: howToUse || []
+        how_to_use: howToUse || [],
+        created_at: created_at || Timestamp.now()
     };
 };
 
 export const ProductProvider = ({ children }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         fetchProducts();
     }, []);
@@ -34,35 +37,27 @@ export const ProductProvider = ({ children }) => {
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('products')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const productsRef = collection(db, 'products');
+            const q = query(productsRef, orderBy('created_at', 'desc'));
+            const querySnapshot = await getDocs(q);
 
-            if (error) throw error;
+            let fetchedProducts = querySnapshot.docs.map(document => ({ id: document.id, ...document.data() }));
 
             // Auto-seed if empty
-            if (data.length === 0) {
+            if (fetchedProducts.length === 0) {
                 const dbSeeds = initialProducts.map(p => mapToDB(p));
-                const { data: seededData, error: seedError } = await supabase
-                    .from('products')
-                    .insert(dbSeeds)
-                    .select();
-
-                if (!seedError && seededData) {
-                    setProducts(seededData.map(mapToJS));
-                    return;
-                } else {
-                    console.error("Seed error - Likely blocked by RLS in Production:", seedError);
-                    // Crucial: Set products to empty array so loading finishes instead of crashing
-                    setProducts([]);
+                fetchedProducts = [];
+                for (const seed of dbSeeds) {
+                    const docRef = await addDoc(productsRef, seed);
+                    fetchedProducts.push({ id: docRef.id, ...seed });
                 }
-            } else {
-                setProducts(data.map(mapToJS));
             }
+
+            setProducts(fetchedProducts.map(mapToJS));
         } catch (error) {
             console.error('Error fetching products:', error);
-            setProducts([]); // Failsafe
+            // Crucial: Set products to empty array so loading finishes instead of crashing
+            setProducts([]);
         } finally {
             setLoading(false);
         }
@@ -70,15 +65,10 @@ export const ProductProvider = ({ children }) => {
 
     const addProduct = async (product) => {
         try {
-            const { data, error } = await supabase
-                .from('products')
-                .insert([mapToDB(product)])
-                .select();
-
-            if (error) throw error;
-            if (data && data.length > 0) {
-                setProducts(prev => [mapToJS(data[0]), ...prev]);
-            }
+            const productsRef = collection(db, 'products');
+            const payload = mapToDB(product);
+            const docRef = await addDoc(productsRef, payload);
+            setProducts(prev => [mapToJS({ id: docRef.id, ...payload }), ...prev]);
         } catch (error) {
             console.error('Error adding product:', error);
         }
@@ -86,14 +76,9 @@ export const ProductProvider = ({ children }) => {
 
     const updateProduct = async (id, updatedProduct) => {
         try {
+            const productRef = doc(db, 'products', id);
             const payload = mapToDB(updatedProduct);
-
-            const { error } = await supabase
-                .from('products')
-                .update(payload)
-                .eq('id', id);
-
-            if (error) throw error;
+            await updateDoc(productRef, payload);
             setProducts(products.map(p => p.id === id ? { ...updatedProduct, id } : p));
         } catch (error) {
             console.error('Error updating product:', error);
@@ -102,12 +87,8 @@ export const ProductProvider = ({ children }) => {
 
     const deleteProduct = async (id) => {
         try {
-            const { error } = await supabase
-                .from('products')
-                .delete()
-                .eq('id', id);
-
-            if (error) throw error;
+            const productRef = doc(db, 'products', id);
+            await deleteDoc(productRef);
             setProducts(products.filter(p => p.id !== id));
         } catch (error) {
             console.error('Error deleting product:', error);

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { db } from '../lib/firebase';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 
 const SiteContext = createContext();
 
@@ -7,51 +8,16 @@ export const useSite = () => useContext(SiteContext);
 
 // Initial Static Content
 const initialCategories = [
-    {
-        name: 'Skin Care',
-        image: '/images/skin_care_category_1772097725583.png',
-        link: '/shop?category=skin-care',
-        description: 'Natural glow for your skin'
-    },
-    {
-        name: 'Body Care',
-        image: '/images/body_care_category_1772097827624.png',
-        link: '/shop?category=body-care',
-        description: 'Nourish your body daily'
-    },
-    {
-        name: 'Edibles',
-        image: '/images/edibles_category_1772097885556.png',
-        link: '/shop?category=edibles',
-        description: 'Healthy organic treats'
-    },
-    {
-        name: 'Hair Care',
-        image: '/images/hair_care_category_1772097909527.png',
-        link: '/shop?category=hair-care',
-        description: 'Stronger, shinier hair'
-    }
+    { name: 'Skin Care', image: '/images/skin_care_category_1772097725583.png', link: '/shop?category=skin-care', description: 'Natural glow for your skin' },
+    { name: 'Body Care', image: '/images/body_care_category_1772097827624.png', link: '/shop?category=body-care', description: 'Nourish your body daily' },
+    { name: 'Edibles', image: '/images/edibles_category_1772097885556.png', link: '/shop?category=edibles', description: 'Healthy organic treats' },
+    { name: 'Hair Care', image: '/images/hair_care_category_1772097909527.png', link: '/shop?category=hair-care', description: 'Stronger, shinier hair' }
 ];
 
 const initialTestimonials = [
-    {
-        name: 'Sarah M.',
-        role: 'Loyal Customer',
-        image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80',
-        text: "I've never felt better since switching to Layra's organic supplements. The quality is unmatched and I love the eco-friendly packaging!",
-    },
-    {
-        name: 'James L.',
-        role: 'Health Enthusiast',
-        image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80',
-        text: "The herbal teas are my absolute favorite. They are so soothing and have become a staple in my nightly routine. Highly recommend!",
-    },
-    {
-        name: 'Elena R.',
-        role: 'Yoga Instructor',
-        image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80',
-        text: "As a yoga instructor, I'm very conscious about what I put in my body. Layra's products align perfectly with my values. Pure and effective.",
-    }
+    { name: 'Sarah M.', role: 'Loyal Customer', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80', text: "I've never felt better since switching to Layra's organic supplements. The quality is unmatched and I love the eco-friendly packaging!" },
+    { name: 'James L.', role: 'Health Enthusiast', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80', text: "The herbal teas are my absolute favorite. They are so soothing and have become a staple in my nightly routine. Highly recommend!" },
+    { name: 'Elena R.', role: 'Yoga Instructor', image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80', text: "As a yoga instructor, I'm very conscious about what I put in my body. Layra's products align perfectly with my values. Pure and effective." }
 ];
 
 const initialAboutData = {
@@ -67,6 +33,7 @@ export const SiteProvider = ({ children }) => {
     const [testimonials, setTestimonials] = useState([]);
     const [aboutData, setAboutDataState] = useState(initialAboutData);
     const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         fetchSiteData();
     }, []);
@@ -75,59 +42,47 @@ export const SiteProvider = ({ children }) => {
         setLoading(true);
         try {
             // Fetch Categories
-            const { data: catData, error: catError } = await supabase.from('categories').select('*').order('id');
-            if (catError) console.error('Categories Error:', catError);
-            if (!catError && catData) {
-                if (catData.length === 0) {
-                    const { data: seededCats, error: seedCatErr } = await supabase.from('categories').insert(initialCategories).select();
-                    if (seededCats) setCategories(seededCats);
-                    else {
-                        console.log("Category Seeding likely blocked by RLS");
-                        setCategories([]);
-                    }
-                } else {
-                    setCategories(catData);
+            const catRef = collection(db, 'categories');
+            const catSnapshot = await getDocs(catRef);
+            let catData = catSnapshot.docs.map(document => ({ id: document.id, ...document.data() }));
+
+            if (catData.length === 0) {
+                catData = [];
+                for (const cat of initialCategories) {
+                    const docRef = await addDoc(catRef, cat);
+                    catData.push({ id: docRef.id, ...cat });
                 }
-            } else if (catError) {
-                setCategories([]);
             }
+            setCategories(catData.sort((a, b) => a.name.localeCompare(b.name)));
 
             // Fetch Testimonials
-            const { data: testData, error: testError } = await supabase.from('testimonials').select('*').order('id');
-            if (testError) console.error('Testimonials Error:', testError);
-            if (!testError && testData) {
-                if (testData.length === 0) {
-                    const { data: seededTests, error: seedTestErr } = await supabase.from('testimonials').insert(initialTestimonials).select();
-                    if (seededTests) setTestimonials(seededTests);
-                    else {
-                        console.log("Testimonial Seeding likely blocked by RLS");
-                        setTestimonials([]);
-                    }
-                } else {
-                    setTestimonials(testData);
+            const testRef = collection(db, 'testimonials');
+            const testSnapshot = await getDocs(testRef);
+            let testData = testSnapshot.docs.map(document => ({ id: document.id, ...document.data() }));
+
+            if (testData.length === 0) {
+                testData = [];
+                for (const test of initialTestimonials) {
+                    const docRef = await addDoc(testRef, test);
+                    testData.push({ id: docRef.id, ...test });
                 }
-            } else if (testError) {
-                setTestimonials([]);
             }
+            setTestimonials(testData);
 
             // Fetch About Data (Settings)
-            const { data: settingsData, error: settingsError } = await supabase.from('settings').select('*').eq('key', 'about');
-            if (settingsError) console.error('Settings Error:', settingsError);
-            if (!settingsError && settingsData) {
-                if (settingsData.length === 0) {
-                    const { error: seedSettingsErr } = await supabase.from('settings').insert([{ key: 'about', value: initialAboutData }]);
-                    setAboutDataState(initialAboutData); // Use fallback visually even if write fails
-                } else {
-                    setAboutDataState(settingsData[0].value);
-                }
-            } else if (settingsError) {
+            const settingsRef = collection(db, 'settings');
+            const settingsSnapshot = await getDocs(settingsRef);
+            const aboutDoc = settingsSnapshot.docs.find(d => d.data().key === 'about');
+
+            if (!aboutDoc) {
+                await addDoc(settingsRef, { key: 'about', value: initialAboutData });
                 setAboutDataState(initialAboutData);
+            } else {
+                setAboutDataState(aboutDoc.data().value);
             }
+
         } catch (err) {
             console.error('Error fetching site data:', err);
-            setCategories([]);
-            setTestimonials([]);
-            setAboutDataState(initialAboutData);
         } finally {
             setLoading(false);
         }
@@ -137,28 +92,19 @@ export const SiteProvider = ({ children }) => {
         try {
             const payload = { ...updatedCat };
             delete payload.id;
-            const { error } = await supabase.from('categories').update(payload).eq('id', id);
-
-            if (!error) {
-                setCategories(categories.map(c => c.id === id ? { ...updatedCat, id } : c));
-            } else {
-                console.error("Update Category Error:", error);
-            }
+            await updateDoc(doc(db, 'categories', id), payload);
+            setCategories(categories.map(c => c.id === id ? { ...updatedCat, id } : c));
         } catch (e) {
-            console.error(e);
+            console.error("Update Category Error:", e);
         }
     };
 
     const addTestimonial = async (testimonial) => {
         try {
-            const { data, error } = await supabase.from('testimonials').insert([testimonial]).select();
-            if (!error && data && data.length > 0) {
-                setTestimonials([...testimonials, data[0]]);
-            } else {
-                console.error("Add Testimonial Error:", error);
-            }
+            const docRef = await addDoc(collection(db, 'testimonials'), testimonial);
+            setTestimonials([...testimonials, { id: docRef.id, ...testimonial }]);
         } catch (e) {
-            console.error(e);
+            console.error("Add Testimonial Error:", e);
         }
     };
 
@@ -166,41 +112,36 @@ export const SiteProvider = ({ children }) => {
         try {
             const payload = { ...updatedTest };
             delete payload.id;
-            const { error } = await supabase.from('testimonials').update(payload).eq('id', id);
-
-            if (!error) {
-                setTestimonials(testimonials.map(t => t.id === id ? { ...updatedTest, id } : t));
-            } else {
-                console.error("Update Testimonial Error:", error);
-            }
+            await updateDoc(doc(db, 'testimonials', id), payload);
+            setTestimonials(testimonials.map(t => t.id === id ? { ...updatedTest, id } : t));
         } catch (e) {
-            console.error(e);
+            console.error("Update Testimonial Error:", e);
         }
     };
 
     const deleteTestimonial = async (id) => {
         try {
-            const { error } = await supabase.from('testimonials').delete().eq('id', id);
-            if (!error) {
-                setTestimonials(testimonials.filter(t => t.id !== id));
-            } else {
-                console.error("Delete Testimonial Error:", error);
-            }
+            await deleteDoc(doc(db, 'testimonials', id));
+            setTestimonials(testimonials.filter(t => t.id !== id));
         } catch (e) {
-            console.error(e);
+            console.error("Delete Testimonial Error:", e);
         }
     };
 
     const setAboutData = async (newAboutData) => {
         try {
-            const { error } = await supabase.from('settings').update({ value: newAboutData }).eq('key', 'about');
-            if (!error) {
-                setAboutDataState(newAboutData);
+            const settingsRef = collection(db, 'settings');
+            const settingsSnapshot = await getDocs(settingsRef);
+            const aboutDoc = settingsSnapshot.docs.find(d => d.data().key === 'about');
+
+            if (aboutDoc) {
+                await updateDoc(doc(db, 'settings', aboutDoc.id), { value: newAboutData });
             } else {
-                console.error("Update About Data Error:", error);
+                await addDoc(settingsRef, { key: 'about', value: newAboutData });
             }
+            setAboutDataState(newAboutData);
         } catch (e) {
-            console.error(e);
+            console.error("Update About Data Error:", e);
         }
     };
 
