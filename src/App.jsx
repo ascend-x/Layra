@@ -24,6 +24,10 @@ import ScrollToTop from './components/layout/ScrollToTop';
 
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
+import { useSite } from './context/SiteContext';
+import { useProducts } from './context/ProductContext';
+import GlobalLoader from './components/layout/GlobalLoader';
+
 // Placeholder components for other routes
 const NotFound = () => <div className="p-8 text-2xl font-bold text-red-500">404 - Page Not Found</div>;
 
@@ -40,6 +44,12 @@ const PageWrapper = ({ children }) => (
 
 function App() {
   const location = useLocation();
+  const { loading: siteLoading } = useSite();
+  const { loading: productsLoading } = useProducts();
+
+  if (siteLoading || productsLoading) {
+    return <GlobalLoader />;
+  }
 
   return (
     <Routes location={location} key={location.pathname}>
