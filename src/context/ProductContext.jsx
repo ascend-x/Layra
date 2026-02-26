@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { products as initialProducts } from '../data/products';
 
@@ -27,13 +27,8 @@ const mapToDB = (p) => {
 export const ProductProvider = ({ children }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const hasFetched = useRef(false);
-
     useEffect(() => {
-        if (!hasFetched.current) {
-            hasFetched.current = true;
-            fetchProducts();
-        }
+        fetchProducts();
     }, []);
 
     const fetchProducts = async () => {

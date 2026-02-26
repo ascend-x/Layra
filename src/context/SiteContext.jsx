@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 const SiteContext = createContext();
@@ -67,13 +67,8 @@ export const SiteProvider = ({ children }) => {
     const [testimonials, setTestimonials] = useState([]);
     const [aboutData, setAboutDataState] = useState(initialAboutData);
     const [loading, setLoading] = useState(true);
-    const hasFetched = useRef(false);
-
     useEffect(() => {
-        if (!hasFetched.current) {
-            hasFetched.current = true;
-            fetchSiteData();
-        }
+        fetchSiteData();
     }, []);
 
     const fetchSiteData = async () => {
