@@ -17,8 +17,8 @@ const CartDrawer = () => {
 
         message += `%0ATotal: ₹${cartTotal.toFixed(2)} (excl. shipping)`;
 
-        // For local testing on desktop, web.whatsapp.com is often more reliable than wa.me
-        window.open(`https://web.whatsapp.com/send?phone=${phoneNumber}&text=${message}`, '_blank');
+        // Use the official wa.me universal deep link to support both Mobile App and Desktop Web
+        window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
     };
 
     return (
