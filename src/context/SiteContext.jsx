@@ -84,11 +84,17 @@ export const SiteProvider = ({ children }) => {
             if (catError) console.error('Categories Error:', catError);
             if (!catError && catData) {
                 if (catData.length === 0) {
-                    const { data: seededCats } = await supabase.from('categories').insert(initialCategories).select();
+                    const { data: seededCats, error: seedCatErr } = await supabase.from('categories').insert(initialCategories).select();
                     if (seededCats) setCategories(seededCats);
+                    else {
+                        console.log("Category Seeding likely blocked by RLS");
+                        setCategories([]);
+                    }
                 } else {
                     setCategories(catData);
                 }
+            } else if (catError) {
+                setCategories([]);
             }
 
             // Fetch Testimonials
@@ -96,11 +102,17 @@ export const SiteProvider = ({ children }) => {
             if (testError) console.error('Testimonials Error:', testError);
             if (!testError && testData) {
                 if (testData.length === 0) {
-                    const { data: seededTests } = await supabase.from('testimonials').insert(initialTestimonials).select();
+                    const { data: seededTests, error: seedTestErr } = await supabase.from('testimonials').insert(initialTestimonials).select();
                     if (seededTests) setTestimonials(seededTests);
+                    else {
+                        console.log("Testimonial Seeding likely blocked by RLS");
+                        setTestimonials([]);
+                    }
                 } else {
                     setTestimonials(testData);
                 }
+            } else if (testError) {
+                setTestimonials([]);
             }
 
             // Fetch About Data (Settings)
@@ -108,14 +120,19 @@ export const SiteProvider = ({ children }) => {
             if (settingsError) console.error('Settings Error:', settingsError);
             if (!settingsError && settingsData) {
                 if (settingsData.length === 0) {
-                    await supabase.from('settings').insert([{ key: 'about', value: initialAboutData }]);
-                    setAboutDataState(initialAboutData);
+                    const { error: seedSettingsErr } = await supabase.from('settings').insert([{ key: 'about', value: initialAboutData }]);
+                    setAboutDataState(initialAboutData); // Use fallback visually even if write fails
                 } else {
                     setAboutDataState(settingsData[0].value);
                 }
+            } else if (settingsError) {
+                setAboutDataState(initialAboutData);
             }
         } catch (err) {
             console.error('Error fetching site data:', err);
+            setCategories([]);
+            setTestimonials([]);
+            setAboutDataState(initialAboutData);
         } finally {
             setLoading(false);
         }

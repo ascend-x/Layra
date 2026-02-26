@@ -58,13 +58,16 @@ export const ProductProvider = ({ children }) => {
                     setProducts(seededData.map(mapToJS));
                     return;
                 } else {
-                    console.error("Seed error:", seedError);
+                    console.error("Seed error - Likely blocked by RLS in Production:", seedError);
+                    // Crucial: Set products to empty array so loading finishes instead of crashing
+                    setProducts([]);
                 }
             } else {
                 setProducts(data.map(mapToJS));
             }
         } catch (error) {
             console.error('Error fetching products:', error);
+            setProducts([]); // Failsafe
         } finally {
             setLoading(false);
         }
