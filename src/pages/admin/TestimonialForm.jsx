@@ -12,7 +12,7 @@ const TestimonialForm = () => {
 
     const [formData, setFormData] = useState(() => {
         if (id) {
-            const testimonial = testimonials.find(t => t.id === parseInt(id));
+            const testimonial = testimonials.find(t => String(t.id) === String(id));
             if (testimonial) return testimonial;
         }
         return {
@@ -46,7 +46,7 @@ const TestimonialForm = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isEditMode) {
-            updateTestimonial(parseInt(id), formData);
+            updateTestimonial(id, formData);
         } else {
             addTestimonial(formData);
         }

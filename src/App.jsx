@@ -56,7 +56,7 @@ function App() {
       {/* Public Routes */}
       <Route path="/" element={<Layout><PageWrapper><Home /></PageWrapper></Layout>} />
       <Route path="/shop" element={<Layout><PageWrapper><Shop /></PageWrapper></Layout>} />
-      <Route path="/product/:id" element={<Layout><PageWrapper><ProductDetails /></PageWrapper></Layout>} />
+      <Route path="/product/:slug" element={<Layout><PageWrapper><ProductDetails /></PageWrapper></Layout>} />
       <Route path="/about" element={<Layout><PageWrapper><About /></PageWrapper></Layout>} />
       <Route path="/contact" element={<Layout><PageWrapper><Contact /></PageWrapper></Layout>} />
 

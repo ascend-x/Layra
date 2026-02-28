@@ -7,16 +7,16 @@ import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 
 const ProductDetails = () => {
-    const { id } = useParams();
+    const { slug } = useParams();
     const { products } = useProducts();
-    const product = products.find(p => p.id === parseInt(id));
+    const product = products.find(p => p.name.replace(/\s+/g, '-').toLowerCase() === slug);
     const [quantity, setQuantity] = useState(1);
     const [activeImage, setActiveImage] = useState(0);
     const { addToCart } = useCart();
 
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, [id]);
+    }, [slug]);
 
     if (!product) {
         return (

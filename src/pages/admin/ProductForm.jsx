@@ -12,7 +12,7 @@ const ProductForm = () => {
 
     const [formData, setFormData] = useState(() => {
         if (id) {
-            const product = products.find(p => p.id === parseInt(id));
+            const product = products.find(p => String(p.id) === String(id));
             if (product) {
                 return {
                     name: product.name,
@@ -76,7 +76,7 @@ const ProductForm = () => {
         };
 
         if (isEditMode) {
-            updateProduct(parseInt(id), productData);
+            updateProduct(id, productData);
         } else {
             addProduct(productData);
         }

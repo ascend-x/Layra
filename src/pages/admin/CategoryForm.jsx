@@ -9,7 +9,7 @@ const CategoryForm = () => {
     const navigate = useNavigate();
     const { categories, updateCategory } = useSite();
 
-    const category = categories.find(c => c.id === parseInt(id));
+    const category = categories.find(c => String(c.id) === String(id));
 
     if (!category) {
         return <div>Category not found.</div>;
@@ -44,7 +44,7 @@ const CategoryForm = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        updateCategory(parseInt(id), { ...category, ...formData });
+        updateCategory(id, { ...category, ...formData });
         navigate('/admin/categories');
     };
 

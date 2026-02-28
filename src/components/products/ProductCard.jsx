@@ -11,7 +11,7 @@ const ProductCard = ({ product }) => {
         <div className="group relative bg-[#fffaef] rounded-3xl shadow-[4px_4px_0px_0px_#d4cbba] hover:shadow-[8px_8px_0px_0px_#d4cbba] transition-all duration-300 overflow-hidden border border-[#d4cbba] p-2 flex flex-col">
             {/* Image Container */}
             <div className="relative aspect-square overflow-hidden bg-[#e6decf] rounded-t-[20px] rounded-b-[12px] border-2 border-dashed border-[#d4cbba]/50 group-hover:border-[#a06d40]/40 transition-colors">
-                <Link to={`/product/${product.id}`}>
+                <Link to={`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`}>
                     <img
                         src={product.image}
                         alt={product.name}
@@ -64,7 +64,7 @@ const ProductCard = ({ product }) => {
             {/* Product Info */}
             <div className="p-5 text-center flex-1 flex flex-col justify-between relative z-10">
                 <div>
-                    <Link to={`/product/${product.id}`}>
+                    <Link to={`/product/${product.name.replace(/\s+/g, '-').toLowerCase()}`}>
                         <h3 className="text-[#2c3e24] font-bold font-serif text-lg leading-tight hover:text-[#a06d40] transition-colors line-clamp-2">{product.name}</h3>
                     </Link>
                     <p className="text-sm text-[#8d7c62] mt-2 font-medium uppercase tracking-wider">{product.category}</p>
