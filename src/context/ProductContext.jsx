@@ -48,14 +48,8 @@ export const ProductProvider = ({ children }) => {
 
             let fetchedProducts = querySnapshot.docs.map(document => ({ id: document.id, ...document.data() }));
 
-            // Auto-seed if empty
             if (fetchedProducts.length === 0) {
-                const dbSeeds = initialProducts.map(p => mapToDB(p));
-                fetchedProducts = [];
-                for (const seed of dbSeeds) {
-                    const docRef = await addDoc(productsRef, seed);
-                    fetchedProducts.push({ id: docRef.id, ...seed });
-                }
+                console.warn("Products not found in database.");
             }
 
             setProducts(fetchedProducts.map(mapToJS));

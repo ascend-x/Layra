@@ -52,11 +52,7 @@ export const SiteProvider = ({ children }) => {
             let catData = catSnapshot.docs.map(document => ({ id: document.id, ...document.data() }));
 
             if (catData.length === 0) {
-                catData = [];
-                for (const cat of initialCategories) {
-                    const docRef = await addDoc(catRef, cat);
-                    catData.push({ id: docRef.id, ...cat });
-                }
+                console.warn("Categories not found in database.");
             }
             setCategories(catData.sort((a, b) => a.name.localeCompare(b.name)));
 
@@ -66,11 +62,7 @@ export const SiteProvider = ({ children }) => {
             let testData = testSnapshot.docs.map(document => ({ id: document.id, ...document.data() }));
 
             if (testData.length === 0) {
-                testData = [];
-                for (const test of initialTestimonials) {
-                    const docRef = await addDoc(testRef, test);
-                    testData.push({ id: docRef.id, ...test });
-                }
+                console.warn("Testimonials not found in database.");
             }
             setTestimonials(testData);
 
