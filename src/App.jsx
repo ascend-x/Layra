@@ -52,34 +52,37 @@ function App() {
   }
 
   return (
-    <Routes location={location} key={location.pathname}>
-      {/* Public Routes */}
-      <Route path="/" element={<Layout><PageWrapper><Home /></PageWrapper></Layout>} />
-      <Route path="/shop" element={<Layout><PageWrapper><Shop /></PageWrapper></Layout>} />
-      <Route path="/product/:slug" element={<Layout><PageWrapper><ProductDetails /></PageWrapper></Layout>} />
-      <Route path="/about" element={<Layout><PageWrapper><About /></PageWrapper></Layout>} />
-      <Route path="/contact" element={<Layout><PageWrapper><Contact /></PageWrapper></Layout>} />
+    <>
+      <ScrollToTop />
+      <Routes location={location} key={location.pathname}>
+        {/* Public Routes */}
+        <Route path="/" element={<Layout><PageWrapper><Home /></PageWrapper></Layout>} />
+        <Route path="/shop" element={<Layout><PageWrapper><Shop /></PageWrapper></Layout>} />
+        <Route path="/product/:slug" element={<Layout><PageWrapper><ProductDetails /></PageWrapper></Layout>} />
+        <Route path="/about" element={<Layout><PageWrapper><About /></PageWrapper></Layout>} />
+        <Route path="/contact" element={<Layout><PageWrapper><Contact /></PageWrapper></Layout>} />
 
-      {/* Admin Login */}
-      <Route path="/admin/login" element={<PageWrapper><Login /></PageWrapper>} />
+        {/* Admin Login */}
+        <Route path="/admin/login" element={<PageWrapper><Login /></PageWrapper>} />
 
-      {/* Protected Admin Routes */}
-      <Route path="/admin" element={<ProtectedRoute />}>
-        <Route element={<AdminLayout />}>
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="products/new" element={<ProductForm />} />
-          <Route path="products/edit/:id" element={<ProductForm />} />
-          <Route path="categories" element={<CategoriesAdmin />} />
-          <Route path="categories/edit/:id" element={<CategoryForm />} />
-          <Route path="testimonials" element={<TestimonialsAdmin />} />
-          <Route path="testimonials/new" element={<TestimonialForm />} />
-          <Route path="testimonials/edit/:id" element={<TestimonialForm />} />
-          <Route path="settings" element={<SettingsAdmin />} />
+        {/* Protected Admin Routes */}
+        <Route path="/admin" element={<ProtectedRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="products/new" element={<ProductForm />} />
+            <Route path="products/edit/:id" element={<ProductForm />} />
+            <Route path="categories" element={<CategoriesAdmin />} />
+            <Route path="categories/edit/:id" element={<CategoryForm />} />
+            <Route path="testimonials" element={<TestimonialsAdmin />} />
+            <Route path="testimonials/new" element={<TestimonialForm />} />
+            <Route path="testimonials/edit/:id" element={<TestimonialForm />} />
+            <Route path="settings" element={<SettingsAdmin />} />
+          </Route>
         </Route>
-      </Route>
 
-      <Route path="*" element={<Layout><PageWrapper><NotFound /></PageWrapper></Layout>} />
-    </Routes>
+        <Route path="*" element={<Layout><PageWrapper><NotFound /></PageWrapper></Layout>} />
+      </Routes>
+    </>
   );
 }
 

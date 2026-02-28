@@ -3,7 +3,7 @@ import { Mail, Phone, MapPin, Send } from 'lucide-react';
 
 const Contact = () => {
     return (
-        <div className="bg-white min-h-screen py-20 relative">
+        <div className="bg-white py-20 relative">
             {/* Top decorative stitch pattern */}
             <div className="absolute top-0 left-0 w-full h-2 border-b-2 border-dashed border-[#e6decf]"></div>
 

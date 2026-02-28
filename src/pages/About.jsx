@@ -7,7 +7,7 @@ const About = () => {
     const { aboutData } = useSite();
 
     return (
-        <div className="bg-white min-h-screen relative">
+        <div className="bg-white relative">
             {/* Hero Header */}
             <div className="bg-[#2c3e24] py-24 text-center relative overflow-hidden">
                 {/* Decorative background stitches */}
@@ -62,7 +62,7 @@ const About = () => {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="mt-12 md:mt-0 relative"
                     >
-                        <div className="relative aspect-w-4 aspect-h-3 bg-[#fffaef] rounded-3xl border border-[#d4cbba] shadow-[10px_10px_0px_0px_#d4cbba] p-3 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                        <div className="relative aspect-[4/3] w-full bg-[#fffaef] rounded-3xl border border-[#d4cbba] shadow-[10px_10px_0px_0px_#d4cbba] p-3 transform rotate-1 hover:rotate-0 transition-transform duration-500">
                             {/* Inner dashed patch border */}
                             <div className="absolute inset-3 border-2 border-dashed border-[#d4cbba]/60 rounded-2xl pointer-events-none z-10"></div>
 
