@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { db } from '../lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp } from 'firebase/firestore';
 import { products as initialProducts } from '../data/products';
@@ -30,8 +30,13 @@ export const ProductProvider = ({ children }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const initRef = useRef(false);
+
     useEffect(() => {
-        fetchProducts();
+        if (!initRef.current) {
+            initRef.current = true;
+            fetchProducts();
+        }
     }, []);
 
     const fetchProducts = async () => {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { db } from '../lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 
@@ -34,8 +34,13 @@ export const SiteProvider = ({ children }) => {
     const [aboutData, setAboutDataState] = useState(initialAboutData);
     const [loading, setLoading] = useState(true);
 
+    const initRef = useRef(false);
+
     useEffect(() => {
-        fetchSiteData();
+        if (!initRef.current) {
+            initRef.current = true;
+            fetchSiteData();
+        }
     }, []);
 
     const fetchSiteData = async () => {
