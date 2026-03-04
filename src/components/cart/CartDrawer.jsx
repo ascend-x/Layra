@@ -1,13 +1,15 @@
 import React from 'react';
 import { X, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CartDrawer = () => {
     const { cart, isCartOpen, toggleCart, removeFromCart, updateQuantity, cartTotal } = useCart();
+    const { user, openAuthModal } = useAuth();
 
-    const handleCheckout = () => {
+    const doCheckout = () => {
         const phoneNumber = "6374079511"; // Replace with actual WhatsApp number
         let message = "Hello Layra Herbal, I would like to place an order:%0A%0A";
 
@@ -19,6 +21,16 @@ const CartDrawer = () => {
 
         // Use the official wa.me universal deep link to support both Mobile App and Desktop Web
         window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+    };
+
+    const handleCheckout = () => {
+        if (!user) {
+            // Trigger login modal, and pass the doCheckout function as a callback for successful login
+            openAuthModal(doCheckout);
+        } else {
+            // Immediately checkout since user is already logged in
+            doCheckout();
+        }
     };
 
     return (

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, PlusCircle, LogOut, Package } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, LogOut, Package, Mail, Users, MessageSquare } from 'lucide-react';
 
 const AdminLayout = () => {
     const { isAuthenticated, logout } = useAuth();
@@ -20,6 +20,9 @@ const AdminLayout = () => {
         { path: '/admin/products/new', icon: PlusCircle, label: 'Add Product' },
         { path: '/admin/categories', icon: Package, label: 'Categories' },
         { path: '/admin/testimonials', icon: LogOut, label: 'Testimonials' },
+        { path: '/admin/messages', icon: MessageSquare, label: 'Contact Messages' },
+        { path: '/admin/users', icon: Users, label: 'Customers' },
+        { path: '/admin/newsletter', icon: Mail, label: 'Newsletter' },
         { path: '/admin/settings', icon: LayoutDashboard, label: 'Settings' }
     ];
 

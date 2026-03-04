@@ -5,6 +5,7 @@ import BestSellers from '../components/home/BestSellers';
 import Testimonials from '../components/home/Testimonials';
 import InstagramFeed from '../components/home/InstagramFeed';
 import Newsletter from '../components/home/Newsletter';
+import FeedbackCTA from '../components/home/FeedbackCTA';
 
 const Home = () => {
     return (
@@ -13,6 +14,7 @@ const Home = () => {
             <Categories />
             <BestSellers />
             <Testimonials />
+            <FeedbackCTA />
             <InstagramFeed />
             <Newsletter />
         </>

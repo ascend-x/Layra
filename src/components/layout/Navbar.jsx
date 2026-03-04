@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, User, Search, Menu, X, ChevronDown } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, ChevronDown, LogOut } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isPagesDropdownOpen, setIsPagesDropdownOpen] = useState(false);
+    const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const { cartCount, toggleCart } = useCart();
+    const { user, openAuthModal, logout } = useAuth();
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -36,28 +38,6 @@ const Navbar = () => {
                             <span className="absolute -bottom-1 left-0 w-0 h-0.5 border-b-2 border-dashed border-[#a06d40] transition-all group-hover:w-full"></span>
                         </Link>
 
-                        {/* Pages Dropdown */}
-                        <div className="relative group">
-                            <button
-                                className="flex items-center text-[#5c5446] hover:text-[#4a6b3d] font-bold transition-colors outline-none relative group-btn"
-                                onClick={() => setIsPagesDropdownOpen(!isPagesDropdownOpen)}
-                                onMouseEnter={() => setIsPagesDropdownOpen(true)}
-                            >
-                                <span>Pages</span> <ChevronDown size={16} className="ml-1" />
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 border-b-2 border-dashed border-[#a06d40] transition-all group-hover:w-full"></span>
-                            </button>
-
-                            {/* Dropdown Content */}
-                            <div
-                                className={`absolute left-0 mt-2 w-48 bg-[#fffaef] rounded-xl shadow-lg border-2 border-dashed border-[#d4cbba] py-2 transition-all duration-200 ${isPagesDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
-                                    }`}
-                                onMouseLeave={() => setIsPagesDropdownOpen(false)}
-                            >
-                                <Link to="/faq" className="block px-4 py-2 text-sm font-semibold text-[#5c5446] hover:bg-[#d4cbba]/20 hover:text-[#4a6b3d]">FAQ</Link>
-                                <Link to="/testimonials" className="block px-4 py-2 text-sm font-semibold text-[#5c5446] hover:bg-[#d4cbba]/20 hover:text-[#4a6b3d]">Testimonials</Link>
-                                <Link to="/contact" className="block px-4 py-2 text-sm font-semibold text-[#5c5446] hover:bg-[#d4cbba]/20 hover:text-[#4a6b3d]">Contact Us</Link>
-                            </div>
-                        </div>
 
                         <Link to="/contact" className="text-[#5c5446] hover:text-[#4a6b3d] font-bold transition-colors relative group">
                             <span>Contact</span>
@@ -70,9 +50,48 @@ const Navbar = () => {
                         <button className="text-[#5c5446] hover:text-[#a06d40] transition-colors">
                             <Search size={22} />
                         </button>
-                        <button className="text-[#5c5446] hover:text-[#a06d40] transition-colors">
-                            <User size={22} />
-                        </button>
+
+                        {/* Profile Area */}
+                        <div className="relative group">
+                            {user ? (
+                                <button
+                                    className="flex items-center text-[#5c5446] hover:text-[#a06d40] transition-colors outline-none cursor-pointer"
+                                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                                    // Make it work on both click and hover
+                                    onMouseEnter={() => setIsProfileDropdownOpen(true)}
+                                >
+                                    <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-[#d4cbba] hover:border-[#a06d40] transition-colors">
+                                        <img src={user.photoURL || "https://images.unsplash.com/photo-1544257134-8b63e8a4a584?q=80&w=64&h=64&auto=format&fit=crop"} alt={user.displayName || "User"} className="w-full h-full object-cover" />
+                                    </div>
+                                </button>
+                            ) : (
+                                <button onClick={() => openAuthModal()} className="text-[#5c5446] hover:text-[#a06d40] transition-colors">
+                                    <User size={22} />
+                                </button>
+                            )}
+
+                            {/* Profile Dropdown */}
+                            {user && (
+                                <div
+                                    className={`absolute right-0 mt-2 w-48 bg-[#fffaef] rounded-xl shadow-[0px_10px_30px_rgba(44,62,36,0.1)] border-2 border-dashed border-[#d4cbba] py-2 transition-all duration-200 z-50 ${isProfileDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
+                                        }`}
+                                    onMouseLeave={() => setIsProfileDropdownOpen(false)}
+                                >
+                                    <div className="px-4 py-3 border-b-2 border-dashed border-[#d4cbba] mb-1">
+                                        <p className="text-sm font-bold text-[#2c3e24] truncate">{user.displayName || "Herbal Enthusiast"}</p>
+                                        <p className="text-xs font-medium text-[#8d7c62] truncate">{user.email}</p>
+                                    </div>
+                                    <button
+                                        onClick={logout}
+                                        className="w-full text-left px-4 py-2 text-sm font-semibold text-[#e05a5a] hover:bg-[#e05a5a]/10 flex items-center gap-2 transition-colors"
+                                    >
+                                        <LogOut size={16} />
+                                        Log Out
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="relative">
                             <button
                                 onClick={toggleCart}
@@ -110,7 +129,11 @@ const Navbar = () => {
                             <div className="border-t-2 border-dashed border-[#d4cbba] my-3"></div>
                             <div className="flex justify-around py-2">
                                 <button className="text-[#5c5446] hover:text-[#a06d40]"><Search size={24} /></button>
-                                <button className="text-[#5c5446] hover:text-[#a06d40]"><User size={24} /></button>
+                                {user ? (
+                                    <button onClick={logout} className="text-[#e05a5a] hover:text-[#c44e4e]"><LogOut size={24} /></button>
+                                ) : (
+                                    <button onClick={() => { setIsMenuOpen(false); openAuthModal(); }} className="text-[#5c5446] hover:text-[#a06d40]"><User size={24} /></button>
+                                )}
                                 <button onClick={toggleCart} className="text-[#5c5446] hover:text-[#a06d40] relative">
                                     <ShoppingCart size={24} />
                                     <span className="absolute -top-2 -right-2 bg-[#a06d40] text-[#fffaef] text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">

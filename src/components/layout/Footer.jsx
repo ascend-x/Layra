@@ -1,8 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { db } from '../../lib/firebase';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
 const Footer = () => {
+    const [email, setEmail] = useState('');
+    const [status, setStatus] = useState('idle');
+
+    const handleSubscribe = async (e) => {
+        e.preventDefault();
+        if (!email) return;
+
+        setStatus('loading');
+        try {
+            const q = query(collection(db, 'newsletter'), where('email', '==', email));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                setStatus('success');
+                setEmail('');
+                setTimeout(() => setStatus('idle'), 3000);
+                return;
+            }
+
+            await addDoc(collection(db, 'newsletter'), {
+                email: email,
+                subscribedAt: new Date().toISOString(),
+                source: 'footer'
+            });
+
+            setStatus('success');
+            setEmail('');
+            setTimeout(() => setStatus('idle'), 4000);
+        } catch (error) {
+            console.error('Newsletter error:', error);
+            setStatus('error');
+            setTimeout(() => setStatus('idle'), 3000);
+        }
+    };
+
     return (
         <footer className="relative bg-[#2c3e24] text-[#fffaef] pt-20 pb-10 overflow-hidden">
             {/* Background dashed border to simulate interior patch stitch */}
@@ -53,16 +90,16 @@ const Footer = () => {
                         </h3>
                         <ul className="space-y-5">
                             <li className="flex items-start">
-                                <MapPin size={22} className="mr-4 text-[#a06d40] flex-shrink-0" />
-                                <span className="text-[#d4cbba] font-medium leading-relaxed">123 Herbal Lane, Green City, Earth 40404</span>
+                                <MapPin size={22} className="mr-4 text-[#a06d40] flex-shrink-0 mt-1" />
+                                <span className="text-[#d4cbba] font-medium leading-relaxed">Jagirammapalayam Salem<br />Tamilnadu India 636302</span>
                             </li>
                             <li className="flex items-center">
                                 <Phone size={22} className="mr-4 text-[#a06d40] flex-shrink-0" />
-                                <span className="text-[#d4cbba] font-medium">+1 (555) 123-4567</span>
+                                <span className="text-[#d4cbba] font-medium">6374079511</span>
                             </li>
                             <li className="flex items-center">
                                 <Mail size={22} className="mr-4 text-[#a06d40] flex-shrink-0" />
-                                <span className="text-[#d4cbba] font-medium">hello@layraherbal.com</span>
+                                <span className="text-[#d4cbba] font-medium">thelayrashop@gmail.com</span>
                             </li>
                         </ul>
                     </div>
@@ -73,20 +110,34 @@ const Footer = () => {
                             <span className="w-6 h-0.5 bg-dashed border-t-2 border-dashed border-[#a06d40] mr-2"></span> Newsletter
                         </h3>
                         <p className="text-[#d4cbba] font-medium mb-6 leading-relaxed">Subscribe to receive updates, access to exclusive deals, and more.</p>
-                        <form className="space-y-4">
+                        <form className="space-y-4" onSubmit={handleSubscribe}>
                             <div className="relative">
                                 <input
                                     type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     placeholder="Your email address"
-                                    className="w-full bg-[#4a6b3d] border-2 border-dashed border-[#8d7c62] rounded-xl py-4 px-5 text-[#fffaef] placeholder-[#d4cbba] focus:outline-none focus:border-[#a06d40] font-medium transition-colors"
+                                    disabled={status === 'loading' || status === 'success'}
+                                    required
+                                    className={`w-full bg-[#4a6b3d] border-2 border-dashed rounded-xl py-4 px-5 text-[#fffaef] placeholder-[#d4cbba] focus:outline-none transition-colors disabled:opacity-60 ${status === 'error' ? 'border-[#e05a5a] focus:border-[#e05a5a]' : 'border-[#8d7c62] focus:border-[#a06d40]'
+                                        }`}
                                 />
                                 <button
-                                    type="button"
-                                    className="absolute right-2 top-2 bottom-2 bg-[#a06d40] px-4 rounded-lg hover:bg-[#8d7c62] transition-colors flex items-center justify-center text-[#fffaef]"
+                                    type="submit"
+                                    disabled={status === 'loading'}
+                                    className={`absolute right-2 top-2 bottom-2 px-4 rounded-lg transition-colors flex items-center justify-center text-[#fffaef] ${status === 'success' ? 'bg-[#5c854c]' : 'bg-[#a06d40] hover:bg-[#8d7c62]'
+                                        } disabled:opacity-80`}
                                 >
-                                    <ArrowRight size={20} />
+                                    {status === 'loading' ? (
+                                        <Loader2 size={20} className="animate-spin" />
+                                    ) : status === 'success' ? (
+                                        <CheckCircle2 size={20} />
+                                    ) : (
+                                        <ArrowRight size={20} />
+                                    )}
                                 </button>
                             </div>
+                            {status === 'error' && <p className="text-[#e05a5a] text-sm mt-1">Something went wrong.</p>}
                         </form>
                     </div>
                 </div>

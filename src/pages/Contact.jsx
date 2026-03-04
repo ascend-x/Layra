@@ -1,7 +1,35 @@
-import React from 'react';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Phone, MapPin, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { db } from '../lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 const Contact = () => {
+    const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+    const [status, setStatus] = useState('idle'); // idle, loading, success, error
+
+    const handleInputChange = (e) => {
+        setFormData({ ...formData, [e.target.id]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!formData.name || !formData.email || !formData.subject || !formData.message) return;
+
+        setStatus('loading');
+        try {
+            await addDoc(collection(db, 'contact_messages'), {
+                ...formData,
+                submittedAt: new Date().toISOString()
+            });
+            setStatus('success');
+            setFormData({ name: '', email: '', subject: '', message: '' });
+            setTimeout(() => setStatus('idle'), 5000);
+        } catch (error) {
+            console.error('Error sending message:', error);
+            setStatus('error');
+            setTimeout(() => setStatus('idle'), 3000);
+        }
+    };
     return (
         <div className="bg-white py-20 relative">
             {/* Top decorative stitch pattern */}
@@ -33,8 +61,7 @@ const Contact = () => {
                                 </div>
                                 <div className="ml-5">
                                     <p className="font-bold text-[#2c3e24] text-lg mb-1">Email Us</p>
-                                    <p className="text-[#8d7c62] font-medium">hello@layraherbal.com</p>
-                                    <p className="text-[#8d7c62] font-medium">support@layraherbal.com</p>
+                                    <p className="text-[#8d7c62] font-medium">thelayrashop@gmail.com</p>
                                 </div>
                             </div>
 
@@ -44,7 +71,7 @@ const Contact = () => {
                                 </div>
                                 <div className="ml-5">
                                     <p className="font-bold text-[#2c3e24] text-lg mb-1">Call Us</p>
-                                    <p className="text-[#8d7c62] font-medium">+1 (555) 123-4567</p>
+                                    <p className="text-[#8d7c62] font-medium">6374079511</p>
                                     <p className="text-[#8d7c62] font-medium">Mon - Fri, 9am - 6pm</p>
                                 </div>
                             </div>
@@ -55,8 +82,8 @@ const Contact = () => {
                                 </div>
                                 <div className="ml-5">
                                     <p className="font-bold text-[#2c3e24] text-lg mb-1">Visit Us</p>
-                                    <p className="text-[#8d7c62] font-medium">123 Herbal Lane</p>
-                                    <p className="text-[#8d7c62] font-medium">Green City, Earth 40404</p>
+                                    <p className="text-[#8d7c62] font-medium">Jagirammapalayam Salem</p>
+                                    <p className="text-[#8d7c62] font-medium">Tamilnadu India 636302</p>
                                 </div>
                             </div>
                         </div>
@@ -64,14 +91,18 @@ const Contact = () => {
 
                     {/* Contact Form */}
                     <div className="lg:col-span-2 bg-[#fffaef] rounded-3xl border-[3px] border-dashed border-[#d4cbba] shadow-[6px_6px_0px_0px_#d4cbba] hover:shadow-[10px_10px_0px_0px_#d4cbba] transition-shadow p-10 relative">
-                        <form className="space-y-8 relative z-10">
+                        <form className="space-y-8 relative z-10" onSubmit={handleSubmit}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div>
                                     <label htmlFor="name" className="block text-sm font-bold text-[#5c5446] mb-2 tracking-wide uppercase">Full Name</label>
                                     <input
                                         type="text"
                                         id="name"
-                                        className="block w-full rounded-xl border-2 border-dashed border-[#d4cbba] bg-white p-4 text-[#2c3e24] font-medium outline-none focus:border-[#a06d40] focus:ring-4 focus:ring-[#a06d40]/10 transition-all shadow-inner"
+                                        required
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        disabled={status === 'loading' || status === 'success'}
+                                        className="block w-full rounded-xl border-2 border-dashed border-[#d4cbba] bg-white p-4 text-[#2c3e24] font-medium outline-none focus:border-[#a06d40] focus:ring-4 focus:ring-[#a06d40]/10 transition-all shadow-inner disabled:opacity-60"
                                         placeholder="John Doe"
                                     />
                                 </div>
@@ -80,7 +111,11 @@ const Contact = () => {
                                     <input
                                         type="email"
                                         id="email"
-                                        className="block w-full rounded-xl border-2 border-dashed border-[#d4cbba] bg-white p-4 text-[#2c3e24] font-medium outline-none focus:border-[#a06d40] focus:ring-4 focus:ring-[#a06d40]/10 transition-all shadow-inner"
+                                        required
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        disabled={status === 'loading' || status === 'success'}
+                                        className="block w-full rounded-xl border-2 border-dashed border-[#d4cbba] bg-white p-4 text-[#2c3e24] font-medium outline-none focus:border-[#a06d40] focus:ring-4 focus:ring-[#a06d40]/10 transition-all shadow-inner disabled:opacity-60"
                                         placeholder="john@example.com"
                                     />
                                 </div>
@@ -91,7 +126,11 @@ const Contact = () => {
                                 <input
                                     type="text"
                                     id="subject"
-                                    className="block w-full rounded-xl border-2 border-dashed border-[#d4cbba] bg-white p-4 text-[#2c3e24] font-medium outline-none focus:border-[#a06d40] focus:ring-4 focus:ring-[#a06d40]/10 transition-all shadow-inner"
+                                    required
+                                    value={formData.subject}
+                                    onChange={handleInputChange}
+                                    disabled={status === 'loading' || status === 'success'}
+                                    className="block w-full rounded-xl border-2 border-dashed border-[#d4cbba] bg-white p-4 text-[#2c3e24] font-medium outline-none focus:border-[#a06d40] focus:ring-4 focus:ring-[#a06d40]/10 transition-all shadow-inner disabled:opacity-60"
                                     placeholder="How can we help?"
                                 />
                             </div>
@@ -100,19 +139,36 @@ const Contact = () => {
                                 <label htmlFor="message" className="block text-sm font-bold text-[#5c5446] mb-2 tracking-wide uppercase">Message</label>
                                 <textarea
                                     id="message"
+                                    required
                                     rows={5}
-                                    className="block w-full rounded-xl border-2 border-dashed border-[#d4cbba] bg-white p-4 text-[#2c3e24] font-medium outline-none focus:border-[#a06d40] focus:ring-4 focus:ring-[#a06d40]/10 transition-all shadow-inner resize-none"
+                                    value={formData.message}
+                                    onChange={handleInputChange}
+                                    disabled={status === 'loading' || status === 'success'}
+                                    className="block w-full rounded-xl border-2 border-dashed border-[#d4cbba] bg-white p-4 text-[#2c3e24] font-medium outline-none focus:border-[#a06d40] focus:ring-4 focus:ring-[#a06d40]/10 transition-all shadow-inner resize-none disabled:opacity-60"
                                     placeholder="Your message here..."
                                 ></textarea>
                             </div>
 
+                            {status === 'error' && (
+                                <p className="text-[#e05a5a] text-sm font-bold">Failed to send message. Please try again.</p>
+                            )}
+
                             <div className="pt-2">
                                 <button
                                     type="submit"
-                                    className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 bg-[#5c854c] border-2 border-dashed border-[#4a6b3d] rounded-xl shadow-md font-bold text-lg text-[#fffaef] hover:bg-[#4a6b3d] transition-all active:scale-[0.98]"
-                                    onClick={(e) => e.preventDefault()}
+                                    disabled={status === 'loading'}
+                                    className={`w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 border-2 border-dashed rounded-xl shadow-md font-bold text-lg text-[#fffaef] transition-all active:scale-[0.98] disabled:opacity-80 disabled:scale-100 ${status === 'success'
+                                            ? 'bg-[#a06d40] border-[#a06d40]'
+                                            : 'bg-[#5c854c] border-[#4a6b3d] hover:bg-[#4a6b3d]'
+                                        }`}
                                 >
-                                    Send Message <Send className="ml-3" size={20} />
+                                    {status === 'loading' ? (
+                                        <>Sending... <Loader2 className="ml-3 animate-spin" size={20} /></>
+                                    ) : status === 'success' ? (
+                                        <>Sent Successfully <CheckCircle2 className="ml-3" size={20} /></>
+                                    ) : (
+                                        <>Send Message <Send className="ml-3" size={20} /></>
+                                    )}
                                 </button>
                             </div>
                         </form>

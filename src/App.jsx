@@ -9,6 +9,8 @@ import Shop from './pages/Shop';
 import ProductDetails from './pages/ProductDetails';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Feedback from './pages/Feedback';
+import NotFound from './pages/NotFound';
 
 import Login from './pages/admin/Login';
 import AdminLayout from './components/admin/AdminLayout';
@@ -19,6 +21,9 @@ import CategoryForm from './pages/admin/CategoryForm';
 import TestimonialsAdmin from './pages/admin/TestimonialsAdmin';
 import TestimonialForm from './pages/admin/TestimonialForm';
 import SettingsAdmin from './pages/admin/SettingsAdmin';
+import MessagesAdmin from './pages/admin/MessagesAdmin';
+import UsersAdmin from './pages/admin/UsersAdmin';
+import NewsletterAdmin from './pages/admin/NewsletterAdmin';
 import { SiteProvider } from './context/SiteContext';
 import ScrollToTop from './components/layout/ScrollToTop';
 
@@ -28,19 +33,19 @@ import { useSite } from './context/SiteContext';
 import { useProducts } from './context/ProductContext';
 import GlobalLoader from './components/layout/GlobalLoader';
 
-// Placeholder components for other routes
-const NotFound = () => <div className="p-8 text-2xl font-bold text-red-500">404 - Page Not Found</div>;
-
-const PageWrapper = ({ children }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    transition={{ duration: 0.3 }}
-  >
-    {children}
-  </motion.div>
-);
+// PageWrapper handles page transitions
+const PageWrapper = ({ children }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 function App() {
   const location = useLocation();
@@ -61,6 +66,7 @@ function App() {
         <Route path="/product/:slug" element={<Layout><PageWrapper><ProductDetails /></PageWrapper></Layout>} />
         <Route path="/about" element={<Layout><PageWrapper><About /></PageWrapper></Layout>} />
         <Route path="/contact" element={<Layout><PageWrapper><Contact /></PageWrapper></Layout>} />
+        <Route path="/feedback" element={<Layout><PageWrapper><Feedback /></PageWrapper></Layout>} />
 
         {/* Admin Login */}
         <Route path="/admin/login" element={<PageWrapper><Login /></PageWrapper>} />
@@ -77,6 +83,9 @@ function App() {
             <Route path="testimonials/new" element={<TestimonialForm />} />
             <Route path="testimonials/edit/:id" element={<TestimonialForm />} />
             <Route path="settings" element={<SettingsAdmin />} />
+            <Route path="messages" element={<MessagesAdmin />} />
+            <Route path="users" element={<UsersAdmin />} />
+            <Route path="newsletter" element={<NewsletterAdmin />} />
           </Route>
         </Route>
 

@@ -1,7 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '../lib/firebase';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '../lib/firebase';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -9,18 +10,25 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // Auth Modal State
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authCallback, setAuthCallback] = useState(null);
 
     useEffect(() => {
         // Listen for changes on auth state (log in, log out, etc.)
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setIsAuthenticated(!!user);
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            setIsAuthenticated(!!currentUser);
             setLoading(false);
         });
 
         return () => unsubscribe();
     }, []);
 
+    // Email/Password login (used for Admin)
     const login = async (email, password) => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
@@ -36,6 +44,40 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Google Sign-In (used for public users - feedback/checkout)
+    const signInWithGoogle = async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+            const result = await signInWithPopup(auth, provider);
+
+            // Save/Update user profile in Firestore
+            if (result.user) {
+                try {
+                    await setDoc(doc(db, 'users', result.user.uid), {
+                        uid: result.user.uid,
+                        name: result.user.displayName || 'Anonymous',
+                        email: result.user.email || '',
+                        photoURL: result.user.photoURL || '',
+                        lastLogin: new Date().toISOString()
+                    }, { merge: true }); // merge: true updates existing docs without overwriting everything
+                } catch (dbError) {
+                    console.error("Error saving user to Firestore:", dbError);
+                    // We don't block the user from logging in if just the DB save fails
+                }
+            }
+
+            setIsAuthModalOpen(false);
+            if (authCallback) {
+                authCallback();
+                setAuthCallback(null);
+            }
+            return { success: true, user: result.user };
+        } catch (error) {
+            console.error("Error signing in with Google: ", error);
+            return { success: false, error: error.message };
+        }
+    };
+
     const logout = async () => {
         try {
             await signOut(auth);
@@ -44,13 +86,39 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Auth Modal Controllers
+    const openAuthModal = (onSuccessCallback = null) => {
+        if (!user) {
+            setAuthCallback(() => onSuccessCallback);
+            setIsAuthModalOpen(true);
+        } else if (onSuccessCallback) {
+            onSuccessCallback();
+        }
+    };
+
+    const closeAuthModal = () => {
+        setIsAuthModalOpen(false);
+        setAuthCallback(null);
+    };
+
     if (loading) {
         return <div className="min-h-screen bg-[#fffaef] flex items-center justify-center font-bold text-[#8d7c62]">Loading authentication...</div>;
     }
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, login, logout, loading }}>
+        <AuthContext.Provider value={{
+            isAuthenticated,
+            user,
+            login,
+            signInWithGoogle,
+            logout,
+            loading,
+            isAuthModalOpen,
+            openAuthModal,
+            closeAuthModal
+        }}>
             {children}
+            {/* Note: The AuthModal component itself should be placed high up in the component tree to render outside of nested elements. App.jsx or Layout.jsx is ideal. */}
         </AuthContext.Provider>
     );
 };
