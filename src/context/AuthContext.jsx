@@ -60,6 +60,16 @@ export const AuthProvider = ({ children }) => {
                         photoURL: result.user.photoURL || '',
                         lastLogin: new Date().toISOString()
                     }, { merge: true }); // merge: true updates existing docs without overwriting everything
+
+                    // Live backup to Google Sheets
+                    const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL;
+                    if (WEBHOOK_URL) {
+                        fetch(WEBHOOK_URL, {
+                            method: 'POST', mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ type: 'user_login', name: result.user.displayName || 'Anonymous', email: result.user.email || '', date: new Date().toISOString() })
+                        }).catch(() => { });
+                    }
                 } catch (dbError) {
                     console.error("Error saving user to Firestore:", dbError);
                     // We don't block the user from logging in if just the DB save fails

@@ -24,6 +24,9 @@ import SettingsAdmin from './pages/admin/SettingsAdmin';
 import MessagesAdmin from './pages/admin/MessagesAdmin';
 import UsersAdmin from './pages/admin/UsersAdmin';
 import NewsletterAdmin from './pages/admin/NewsletterAdmin';
+import FeedbackAdmin from './pages/admin/FeedbackAdmin';
+import AllContactsAdmin from './pages/admin/AllContactsAdmin';
+import AnalyticsAdmin from './pages/admin/AnalyticsAdmin';
 import { SiteProvider } from './context/SiteContext';
 import ScrollToTop from './components/layout/ScrollToTop';
 
@@ -86,6 +89,9 @@ function App() {
             <Route path="messages" element={<MessagesAdmin />} />
             <Route path="users" element={<UsersAdmin />} />
             <Route path="newsletter" element={<NewsletterAdmin />} />
+            <Route path="feedback" element={<FeedbackAdmin />} />
+            <Route path="all-contacts" element={<AllContactsAdmin />} />
+            <Route path="analytics" element={<AnalyticsAdmin />} />
           </Route>
         </Route>
 

@@ -4,6 +4,8 @@ import { Star, Send, Loader2, Camera, UserCheck, UploadCloud, X } from 'lucide-r
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
+import { db } from '../lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 const Feedback = () => {
     const { user, openAuthModal, loading: authLoading } = useAuth();
@@ -173,6 +175,21 @@ const Feedback = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload)
+            });
+
+            // Dual-Write exact text data to Firestore so Admin can see it on the dashboard instantly
+            await addDoc(collection(db, 'feedback'), {
+                name: DOMPurify.sanitize(user?.displayName || 'Anonymous User'),
+                email: DOMPurify.sanitize(user?.email || ''),
+                profilePhoto: DOMPurify.sanitize(user?.photoURL || ''),
+                age: DOMPurify.sanitize(formData.age),
+                phone: DOMPurify.sanitize(formData.phone),
+                product: DOMPurify.sanitize(formData.product),
+                rating,
+                feedback: DOMPurify.sanitize(formData.feedback),
+                instagramConsent: formData.instagramConsent ? 'Yes' : 'No',
+                date: new Date().toISOString(),
+                hasMediaAttached: (photos.length > 0 || video !== null)
             });
 
             setIsSuccess(true);

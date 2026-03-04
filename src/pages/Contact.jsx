@@ -21,6 +21,17 @@ const Contact = () => {
                 ...formData,
                 submittedAt: new Date().toISOString()
             });
+
+            // Live backup to Google Sheets
+            const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL;
+            if (WEBHOOK_URL) {
+                fetch(WEBHOOK_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'contact', name: formData.name, email: formData.email, subject: formData.subject, message: formData.message, date: new Date().toISOString() })
+                }).catch(() => { });
+            }
+
             setStatus('success');
             setFormData({ name: '', email: '', subject: '', message: '' });
             setTimeout(() => setStatus('idle'), 5000);
@@ -158,8 +169,8 @@ const Contact = () => {
                                     type="submit"
                                     disabled={status === 'loading'}
                                     className={`w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 border-2 border-dashed rounded-xl shadow-md font-bold text-lg text-[#fffaef] transition-all active:scale-[0.98] disabled:opacity-80 disabled:scale-100 ${status === 'success'
-                                            ? 'bg-[#a06d40] border-[#a06d40]'
-                                            : 'bg-[#5c854c] border-[#4a6b3d] hover:bg-[#4a6b3d]'
+                                        ? 'bg-[#a06d40] border-[#a06d40]'
+                                        : 'bg-[#5c854c] border-[#4a6b3d] hover:bg-[#4a6b3d]'
                                         }`}
                                 >
                                     {status === 'loading' ? (
